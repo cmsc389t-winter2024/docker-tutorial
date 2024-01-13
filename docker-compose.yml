@@ -1,0 +1,39 @@
+version: "3" # Specifies the version of the Compose file format
+
+services: # Defines the services (containers) to be created
+  nodejs: # The first service - a Node.js application
+    build: # Instructions to build the Node.js app's Docker image
+      context: . # Specifies the build context (current directory)
+      dockerfile: Dockerfile # Points to the Dockerfile
+    image: nodejs-app # Names the built image as 'nodejs-app'
+    container_name: nodejs # Sets the container's name to 'nodejs'
+    restart: unless-stopped # Configures the restart policy
+
+    networks: # Network configurations for this service
+      - app-network # Connects to the 'app-network' network
+
+  webserver: # The second service - a Nginx webserver
+    image: nginx:mainline-alpine # Uses the nginx image from Docker Hub
+    container_name: webserver # Sets the container's name to 'webserver'
+    restart: unless-stopped # Configures the restart policy
+    ports: # Maps the container's ports to the host
+      - "80:80" # Maps port 80 of the container to port 80 of the host
+    volumes: # Defines the volume mappings
+      - web-root:/var/www/html # Maps 'web-root' volume to the nginx root directory
+      - ./nginx-conf:/etc/nginx/conf.d # Maps local nginx configuration to the container
+    depends_on: # Specifies dependencies of this service
+      - nodejs # Indicates that the 'webserver' depends on the 'nodejs' service
+    networks: # Network configurations for this service
+      - app-network # Connects to the 'app-network' network
+
+volumes: # Defines volumes used by the services
+  web-root: # The name of the volume
+    driver: local # Specifies the volume driver
+    driver_opts: # Driver-specific options
+      type: none # Filesystem type
+      device: /Users/jasondevers/Desktop/cmsc389T-web-template # Path to the volume data
+      o: bind # Bind-mounts a filesystem
+
+networks: # Defines networks used by the services
+  app-network: # The name of the network
+    driver: bridge # Uses the bridge driver for networking
